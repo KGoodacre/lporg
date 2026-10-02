@@ -79,7 +79,7 @@ Save your current launchpad app layout to a `lporg.yml` file
 ### Load
 
 ```sh
-lporg load -c lporg.yml
+lporg load lporg.yml
 ```
 
 Load a launchpad app layout from a YAML config file

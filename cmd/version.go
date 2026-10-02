@@ -28,16 +28,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionCmd represents the version command
+// versionCmd Represents The Version Command
 var versionCmd = &cobra.Command{
 	Use:           "version",
 	Aliases:       []string{"v"},
-	Short:         "Print the version number of lporg",
+	Short:         "Print The Version Number Of Lporg",
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Version: %s, BuildTime: %s\n", strings.TrimSpace(AppVersion), strings.TrimSpace(AppBuildTime))
+		fmt.Printf("Version: %s, Build Time: %s\n", strings.TrimSpace(AppVersion), strings.TrimSpace(AppBuildTime))
 	},
 }
 

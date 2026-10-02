@@ -27,10 +27,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// revertCmd represents the revert command
+// revertCmd Represents The Revert Command
 var revertCmd = &cobra.Command{
 	Use:           "revert",
-	Short:         "Revert to launchpad settings backup",
+	Short:         "Revert To Launchpad Settings Backup",
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -51,7 +51,7 @@ var revertCmd = &cobra.Command{
 			return err
 		}
 
-		log.Info("Reverting launchpad settings")
+		log.Info("Reverting Launchpad Settings")
 		return command.LoadConfig(conf)
 	},
 }

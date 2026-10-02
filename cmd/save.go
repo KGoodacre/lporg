@@ -27,10 +27,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// saveCmd represents the save command
+// saveCmd Represents The Save Command
 var saveCmd = &cobra.Command{
 	Use:           "save",
-	Short:         "Save current launchpad settings",
+	Short:         "Save Current Launchpad Settings",
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -51,7 +51,7 @@ var saveCmd = &cobra.Command{
 			return err
 		}
 
-		log.Info("Saving launchpad settings")
+		log.Info("Saving Launchpad Settings")
 		return command.SaveConfig(conf)
 	},
 }

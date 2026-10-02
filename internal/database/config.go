@@ -11,7 +11,7 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-// Config is the Launchpad config
+// Config Is The Launchpad Config
 type Config struct {
 	Apps    Apps    `yaml:"apps" json:"apps,omitempty"`
 	Widgets Apps    `yaml:"widgets" json:"widgets,omitempty"`
@@ -19,7 +19,7 @@ type Config struct {
 	Desktop Desktop `yaml:"desktop" json:"desktop,omitempty"  mapstructure:"desktop"`
 }
 
-// GetFolderContainingApp returns the folder name that contains the app
+// GetFolderContainingApp Returns The Folder Name That Contains The App
 func (c Config) GetFolderContainingApp(app string) (string, error) {
 	for _, page := range c.Apps.Pages {
 		for _, item := range page.Items {
@@ -44,7 +44,7 @@ func (c Config) GetFolderContainingApp(app string) (string, error) {
 	return "", fmt.Errorf("unable to find folder containing app %s", app)
 }
 
-// Verify that the config is valid
+// Verify That The Config Is Valid
 func (c Config) Verify() error {
 	for _, page := range c.Apps.Pages {
 		for _, item := range page.Items {
@@ -58,7 +58,7 @@ func (c Config) Verify() error {
 				}
 				if len(folder.Pages) > 0 {
 					if len(folder.Pages[0].Items) == 0 { // verify that all folders contain at least 1 item
-						return fmt.Errorf("folder %s must contain at least 1 item to be valid", folder.Name)
+						return fmt.Errorf("Folder %s Must Contain At Least 1 Item To Be Valid", folder.Name)
 					}
 				}
 			}
@@ -67,30 +67,30 @@ func (c Config) Verify() error {
 	return nil
 }
 
-// Apps is the launchpad apps config object
+// Apps Is The Launchpad Apps Config Object
 type Apps struct {
 	Pages []Page `yaml:"pages" json:"pages,omitempty"`
 }
 
-// Page is a launchpad page object
+// Page Is A Launchpad Page Object
 type Page struct {
 	Number int   `yaml:"number" json:"number"`
 	Items  []any `yaml:"items,omitempty" json:"items,omitempty"`
 }
 
-// AppFolder is a launchpad folder object
+// AppFolder Is A Launchpad Folder Object
 type AppFolder struct {
 	Name  string       `yaml:"folder" json:"folder,omitempty" mapstructure:"folder"`
 	Pages []FolderPage `yaml:"pages,omitempty" json:"pages,omitempty"`
 }
 
-// FolderPage is a launchpad folder page object
+// FolderPage Is A Launchpad Folder Page Object
 type FolderPage struct {
 	Number int      `yaml:"number,omitempty" json:"number"`
 	Items  []string `yaml:"items,omitempty" json:"items,omitempty"`
 }
 
-// Desktop is the desktop object
+// Desktop Is The Desktop Object
 type Desktop struct {
 	Image string `yaml:"image,omitempty" json:"image,omitempty"`
 }
@@ -121,7 +121,7 @@ const (
 	kind         FolderSort = 5
 )
 
-// Folder is a launchpad folder object
+// Folder Is A Launchpad Folder Object
 type Folder struct {
 	Path    string        `yaml:"path,omitempty" json:"path,omitempty"`
 	Display FolderDisplay `yaml:"display,omitempty" json:"display,omitempty"`
@@ -129,7 +129,7 @@ type Folder struct {
 	Sort    FolderSort    `yaml:"sort,omitempty" json:"sort,omitempty"`
 }
 
-// DockSettings is the launchpad dock settings object
+// DockSettings Is The Launchpad Dock Settings Object
 type DockSettings struct {
 	AutoHide              bool `yaml:"autohide" json:"autohide,omitempty"`
 	LargeSize             any  `yaml:"largesize" json:"largesize,omitempty"`
@@ -140,32 +140,32 @@ type DockSettings struct {
 	TileSize              any  `yaml:"tilesize" json:"tilesize,omitempty"`
 }
 
-// Dock is the launchpad dock config object
+// Dock Is The Launchpad Dock Config Object
 type Dock struct {
 	Apps     []string      `yaml:"apps,omitempty" json:"apps,omitempty"`
 	Others   []Folder      `yaml:"others,omitempty" json:"others,omitempty"`
 	Settings *DockSettings `yaml:"settings,omitempty" json:"settings,omitempty"`
 }
 
-// LoadConfig loads the Launchpad config from the config file
+// LoadConfig Loads The Launchpad Config From The Config File
 func LoadConfig(filename string) (Config, error) {
 	var conf Config
 
-	utils.Indent(log.WithField("path", filename).Info, 2)("parsing launchpad config YAML")
+	utils.Indent(log.WithField("path", filename).Info, 2)("Parsing Launchpad Config YAML")
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		utils.Indent(log.WithError(err).WithField("path", filename).Fatal, 3)("config file not found")
+		utils.Indent(log.WithError(err).WithField("path", filename).Fatal, 3)("Config File Not Found")
 		return conf, err
 	}
 
 	err = yaml.Unmarshal(data, &conf)
 	if err != nil {
-		utils.Indent(log.WithError(err).WithField("path", filename).Fatal, 3)("unmarshalling yaml failed")
+		utils.Indent(log.WithError(err).WithField("path", filename).Fatal, 3)("Unmarshalling YAML Failed")
 		return conf, err
 	}
 
 	if err := conf.Verify(); err != nil {
-		return conf, fmt.Errorf("config verification failed: %v", err)
+		return conf, fmt.Errorf("Config Verification Failed: %v", err)
 	}
 
 	return conf, nil

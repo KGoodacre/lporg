@@ -31,10 +31,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// defaultCmd represents the default command
+// defaultCmd Represents The Default Command
 var defaultCmd = &cobra.Command{
 	Use:           "default",
-	Short:         "Organize by default Apple app categories",
+	Short:         "Organize By Default Apple App Categories",
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -57,7 +57,7 @@ var defaultCmd = &cobra.Command{
 			backup = false
 		} else {
 			prompt := &survey.Confirm{
-				Message: "Backup your current Launchpad/Dock settings?",
+				Message: "Backup Your Current Launchpad/Dock Settings?",
 			}
 			if err := survey.AskOne(prompt, &backup); err == terminal.InterruptErr {
 				log.Warn("Exiting...")
@@ -78,7 +78,7 @@ var defaultCmd = &cobra.Command{
 		}
 
 		if conf.Backup {
-			log.Debug("Backing up current launchpad settings")
+			log.Debug("Backing Up Current Launchpad Settings")
 			if err := command.SaveConfig(conf); err != nil {
 				return err
 			}
@@ -86,7 +86,7 @@ var defaultCmd = &cobra.Command{
 
 		if !yesDefault {
 			prompt := &survey.Confirm{
-				Message: "Organize launchpad with default config?",
+				Message: "Organize Launchpad With Default Config?",
 			}
 			if err := survey.AskOne(prompt, &yesDefault); err == terminal.InterruptErr {
 				log.Warn("Exiting...")
@@ -97,7 +97,7 @@ var defaultCmd = &cobra.Command{
 			}
 		}
 
-		log.Info("Apply default launchpad settings")
+		log.Info("Apply Default Launchpad Settings")
 		return command.DefaultOrg(conf)
 	},
 }
@@ -105,9 +105,9 @@ var defaultCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(defaultCmd)
 
-	defaultCmd.Flags().BoolP("yes", "y", false, "Do not prompt user for confirmation")
-	defaultCmd.Flags().BoolP("backup", "b", false, "Backup current launchpad settings")
-	defaultCmd.Flags().BoolP("no-backup", "n", false, "Do NOT backup current launchpad settings")
+	defaultCmd.Flags().BoolP("yes", "y", false, "Answer Yes To Prompts")
+	defaultCmd.Flags().BoolP("backup", "b", false, "Backup Current Launchpad Settings")
+	defaultCmd.Flags().BoolP("no-backup", "n", false, "Do Not Backup Current Launchpad Settings")
 	defaultCmd.MarkFlagsMutuallyExclusive("backup", "no-backup")
 	defaultCmd.SetHelpFunc(func(c *cobra.Command, s []string) {
 		rootCmd.PersistentFlags().MarkHidden("config")
