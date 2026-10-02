@@ -69,12 +69,22 @@ var PorgASCIIArt = `
 
 `
 
-func restartDock() error {
-	utils.Indent(log.Info, 2)("restarting Dock")
+func stopDock() error {
+	utils.Indent(log.Info, 2)("Stopping Dock")
 	if _, err := utils.RunCommand(context.Background(), "killall", "Dock"); err != nil {
-		return errors.Wrap(err, "killing Dock process failed")
+		utils.Indent(log.WithError(err).Warn, 3)("Dock Was Not Running")
 	}
-	// let system settle
+	// Let System Settle
+	time.Sleep(2 * time.Second)
+	return nil
+}
+
+func restartDock() error {
+	utils.Indent(log.Info, 2)("Restarting Dock")
+	if _, err := utils.RunCommand(context.Background(), "killall", "Dock"); err != nil {
+		utils.Indent(log.WithError(err).Warn, 3)("Dock Was Not Running")
+	}
+	// Let System Settle
 	time.Sleep(2 * time.Second)
 	return nil
 }
@@ -89,13 +99,13 @@ func removeOldDatabaseFiles(dbpath string) error {
 
 	for _, path := range paths {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			utils.Indent(log.WithField("path", path).Warn, 3)("DB file not found")
+			utils.Indent(log.WithField("path", path).Warn, 3)("DB File Not Found")
 			continue
 		}
 		if err := os.Remove(path); err != nil {
 			return errors.Wrap(err, "removing file failed")
 		}
-		utils.Indent(log.WithField("path", path).Info, 3)("removed old DB file")
+		utils.Indent(log.WithField("path", path).Info, 3)("Removed Old DB File")
 	}
 
 	return restartDock()

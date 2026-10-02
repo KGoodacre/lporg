@@ -59,9 +59,6 @@ func (c *Config) Verify() error {
 			}
 		}
 	case "load":
-		if len(c.File) == 0 && !c.Cloud {
-			return fmt.Errorf("must supply --config file OR use --icloud")
-		}
 		fallthrough
 	default:
 		if c.Cloud { // use iCloud to store config
@@ -157,23 +154,23 @@ func DefaultOrg(c *Config) (err error) {
 
 	log.Infof(bold, "USING DEFAULT LAUNCHPAD ORGANIZATION")
 
-	// find launchpad database
+	// Find Launchpad Database
 	tmpDir := os.Getenv("TMPDIR")
 	lpad.Folder = filepath.Join(tmpDir, "../0/com.apple.dock.launchpad/db")
 	lpad.File = filepath.Join(lpad.Folder, "db")
 	// lpad.File = "./launchpad.db"
 	if _, err := os.Stat(lpad.File); os.IsNotExist(err) {
-		utils.Indent(log.WithError(err).WithField("path", lpad.File).Fatal, 2)("launchpad DB not found")
+		utils.Indent(log.WithError(err).WithField("path", lpad.File).Fatal, 2)("Launchpad DB Not Found")
 	}
-	utils.Indent(log.WithFields(log.Fields{"database": lpad.File}).Info, 2)("found launchpad database")
+	utils.Indent(log.WithFields(log.Fields{"database": lpad.File}).Info, 2)("Found Launchpad Database")
 
-	// start from a clean slate
+	// Start From A Clean Slate
 	err = removeOldDatabaseFiles(lpad.Folder)
 	if err != nil {
 		return err
 	}
 
-	// open launchpad database
+	// Open Launchpad Database
 	lpad.DB, err = gorm.Open(sqlite.Open(lpad.File), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.LogLevel(c.LogLevel)),
 	})
@@ -311,17 +308,17 @@ func SaveConfig(c *Config) (err error) {
 		return fmt.Errorf("failed to get user home directory: %v", err)
 	}
 
-	// find launchpad database
+	// Find Launchpad Database
 	tmpDir := os.Getenv("TMPDIR")
 	lpad.Folder = filepath.Join(tmpDir, "../0/com.apple.dock.launchpad/db")
 	lpad.File = filepath.Join(lpad.Folder, "db")
 	// lpad.File = "./launchpad.db"
 	if _, err := os.Stat(lpad.File); os.IsNotExist(err) {
-		utils.Indent(log.WithError(err).WithField("path", lpad.File).Fatal, 2)("launchpad DB not found")
+		utils.Indent(log.WithError(err).WithField("path", lpad.File).Fatal, 2)("Launchpad DB Not Found")
 	}
-	utils.Indent(log.WithFields(log.Fields{"database": lpad.File}).Info, 2)("found launchpad database")
+	utils.Indent(log.WithFields(log.Fields{"database": lpad.File}).Info, 2)("Found Launchpad Database")
 
-	// open launchpad database
+	// Open Launchpad Database
 	lpad.DB, err = gorm.Open(sqlite.Open(lpad.File), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.LogLevel(c.LogLevel)),
 	})
@@ -447,13 +444,13 @@ func SaveConfig(c *Config) (err error) {
 func LoadConfig(c *Config) (err error) {
 	var lpad database.LaunchPad
 
-	// Read in Config file
+	// Read In Config File
 	lpad.Config, err = database.LoadConfig(c.File)
 	if err != nil {
-		return fmt.Errorf("failed to load config file: %v", err)
+		return fmt.Errorf("Failed To Load Config File: %v", err)
 	}
 
-	log.Infof(bold, "PARSE LAUCHPAD DATABASE")
+	log.Infof(bold, "Parse Launchpad Database")
 
 	// Older macOS ////////////////////////////////
 	// $HOME/Library/Application\ Support/Dock/*.db
@@ -461,23 +458,23 @@ func LoadConfig(c *Config) (err error) {
 	// High Sierra //////////////////////////////
 	// $TMPDIR../0/com.apple.dock.launchpad/db/db
 
-	// find launchpad database
+	// Find Launchpad Database
 	tmpDir := os.Getenv("TMPDIR")
 	lpad.Folder = filepath.Join(tmpDir, "../0/com.apple.dock.launchpad/db")
 	lpad.File = filepath.Join(lpad.Folder, "db")
 	// lpad.File = "./launchpad-test.db"
 	if _, err := os.Stat(lpad.File); os.IsNotExist(err) {
-		utils.Indent(log.WithError(err).WithField("path", lpad.File).Fatal, 2)("launchpad DB not found")
+		utils.Indent(log.WithError(err).WithField("path", lpad.File).Fatal, 2)("Launchpad DB Not Found")
 	}
-	utils.Indent(log.WithFields(log.Fields{"database": lpad.File}).Info, 2)("found launchpad database")
+	utils.Indent(log.WithFields(log.Fields{"database": lpad.File}).Info, 2)("Found Launchpad Database")
 
-	// start from a clean slate
+	// Start From A Clean Slate
 	err = removeOldDatabaseFiles(lpad.Folder)
 	if err != nil {
 		return err
 	}
 
-	// open launchpad database
+	// Open Launchpad Database
 	lpad.DB, err = gorm.Open(sqlite.Open(lpad.File), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.LogLevel(c.LogLevel)),
 	})
@@ -495,74 +492,25 @@ func LoadConfig(c *Config) (err error) {
 		}
 	}()
 
-	// Clear all items related to groups so we can re-create them
-	if err := lpad.ClearGroups(); err != nil {
-		return fmt.Errorf("failed to ClearGroups: %v", err)
+	if err := stopDock(); err != nil {
+		return fmt.Errorf("Failed To Stop Dock Before Launchpad Repair: %w", err)
 	}
 
-	// Disable the update triggers
-	if err := lpad.DisableTriggers(); err != nil {
-		return fmt.Errorf("failed to DisableTriggers: %v", err)
-	}
-
-	// Add root and holding pages to items and groups
-	if err := lpad.AddRootsAndHoldingPages(); err != nil {
-		return fmt.Errorf("failed to AddRootsAndHoldingPagesfailed: %v", err)
-	}
-
-	// We will begin our group records using the max ids found (groups always appear after apps and widgets)
-	// groupID := int(math.Max(float64(lpad.GetMaxAppID()), float64(lpad.GetMaxWidgetID())))
-	groupID := int(float64(lpad.GetMaxAppID())) // widgets are no longer supported
-
-	////////////////////////////////////////////////////////////////////
-	// Place Widgets ///////////////////////////////////////////////////
-	// utils.Indent(log.Info)("creating Widget folders and adding widgets to them")
-	// missing, err := lpad.GetMissing(config.Widgets, database.WidgetType)
-	// if err != nil {
-	// 	log.WithError(err).Fatal("GetMissing=>Widgets")
-	// }
-
-	// config.Widgets.Pages = parseMissing(missing, config.Widgets.Pages)
-	// groupID, err = lpad.ApplyConfig(config.Widgets, database.WidgetType, groupID, 3)
-	// if err != nil {
-	// 	log.WithError(err).Fatal("ApplyConfig=>Widgets")
-	// }
-
-	/////////////////////////////////////////////////////////////////////
-	// Place Apps ///////////////////////////////////////////////////////
-	if err := lpad.GetMissing(&lpad.Config.Apps, database.ApplicationType); err != nil {
-		return fmt.Errorf("failed to GetMissing=>Apps: %v", err)
-	}
-
-	if err := lpad.Config.Verify(); err != nil {
-		return fmt.Errorf("failed to verify conf post removal of missing apps: %v", err)
-	}
-
-	utils.Indent(log.Info, 2)("creating App folders and adding apps to them")
-	if err := lpad.ApplyConfig(lpad.Config.Apps, groupID, 1); err != nil {
-		return fmt.Errorf("failed to LoadConfig->ApplyConfig: %w", err)
-	}
-
-	// Re-enable the update triggers
-	if err := lpad.EnableTriggers(); err != nil {
-		return fmt.Errorf("failed to EnableTriggers: %v", err)
+	if err := lpad.RepairFromConfig(); err != nil {
+		return fmt.Errorf("Failed To Repair Launchpad Database From Config: %w", err)
 	}
 
 	if err := restartDock(); err != nil {
-		return fmt.Errorf("failed to restart dock: %w", err)
-	}
-
-	if err := lpad.FixOther(); err != nil {
-		return fmt.Errorf("failed to fix Other folder: %w", err)
+		return fmt.Errorf("Failed To Restart Dock After Launchpad Repair: %w", err)
 	}
 
 	if len(lpad.Config.Desktop.Image) > 0 {
-		utils.Indent(log.WithField("image", lpad.Config.Desktop.Image).Info, 2)("setting desktop background image")
+		utils.Indent(log.WithField("image", lpad.Config.Desktop.Image).Info, 2)("Setting Desktop Background Image")
 		desktop.SetDesktopImage(lpad.Config.Desktop.Image)
 	}
 
 	if len(lpad.Config.Dock.Apps) > 0 || len(lpad.Config.Dock.Others) > 0 {
-		utils.Indent(log.Info, 2)("setting dock apps")
+		utils.Indent(log.Info, 2)("Setting Dock Apps")
 		dPlist, err := dock.LoadDockPlist()
 		if err != nil {
 			return errors.Wrap(err, "unable to load dock plist")
@@ -571,23 +519,23 @@ func LoadConfig(c *Config) (err error) {
 			dPlist.PersistentApps = nil // remove all apps from dock
 		}
 		for _, app := range lpad.Config.Dock.Apps {
-			utils.Indent(log.WithField("app", app).Info, 3)("adding to dock")
+			utils.Indent(log.WithField("app", app).Info, 3)("Adding To Dock")
 			dPlist.AddApp(app)
 		}
 		if len(dPlist.PersistentOthers) > 0 {
 			dPlist.PersistentOthers = nil // remove all folders from dock
 		}
 		for _, other := range lpad.Config.Dock.Others {
-			utils.Indent(log.WithField("other", other).Info, 3)("adding to dock")
+			utils.Indent(log.WithField("other", other).Info, 3)("Adding To Dock")
 			dPlist.AddOther(other)
 		}
 		if lpad.Config.Dock.Settings != nil {
 			if err := dPlist.ApplySettings(*lpad.Config.Dock.Settings); err != nil {
-				return fmt.Errorf("failed to apply dock settings: %w", err)
+				return fmt.Errorf("Failed To Apply Dock Settings: %w", err)
 			}
 		}
 		if err := dPlist.Save(); err != nil {
-			return fmt.Errorf("failed to save dock plist: %w", err)
+			return fmt.Errorf("Failed To Save Dock Plist: %w", err)
 		}
 	}
 

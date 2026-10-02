@@ -31,10 +31,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// loadCmd represents the load command
+// loadCmd Represents The Load Command
 var loadCmd = &cobra.Command{
 	Use:           "load",
-	Short:         "Load launchpad settings config from `FILE`",
+	Short:         "Load Launchpad Settings Config From File",
 	Args:          cobra.NoArgs,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -46,18 +46,30 @@ var loadCmd = &cobra.Command{
 
 		fmt.Println(command.PorgASCIIArt)
 
-		yesbackup, _ := cmd.Flags().GetBool("backup")
+		yesBackup, _ := cmd.Flags().GetBool("backup")
 		noBackup, _ := cmd.Flags().GetBool("no-backup")
+		noBackupUpper, _ := cmd.Flags().GetBool("NO")
 		yesLoad, _ := cmd.Flags().GetBool("yes")
+		yesLoadUpper, _ := cmd.Flags().GetBool("YES")
+
+		// Treat Uppercase And Lowercase Prompt Flags The Same.
+		// -y/-Y Means Yes To Prompts.
+		// -n/-N Means No To Backup Prompt.
+		if noBackupUpper {
+			noBackup = true
+		}
+		if yesLoadUpper {
+			yesLoad = true
+		}
 
 		backup := false
-		if yesbackup {
-			backup = true
-		} else if noBackup {
+		if noBackup {
 			backup = false
+		} else if yesBackup || yesLoad {
+			backup = true
 		} else {
 			prompt := &survey.Confirm{
-				Message: "Backup your current Launchpad/Dock settings?",
+				Message: "Backup Your Current Launchpad/Dock Settings?",
 			}
 			if err := survey.AskOne(prompt, &backup); err == terminal.InterruptErr {
 				log.Warn("Exiting...")
@@ -78,7 +90,7 @@ var loadCmd = &cobra.Command{
 		}
 
 		if conf.Backup {
-			log.Debug("Backing up current launchpad settings")
+			log.Debug("Backing Up Current Launchpad Settings")
 			if err := command.SaveConfig(conf); err != nil {
 				return err
 			}
@@ -86,7 +98,7 @@ var loadCmd = &cobra.Command{
 
 		if !yesLoad {
 			prompt := &survey.Confirm{
-				Message: fmt.Sprintf("Load launchpad config '%s'?", conf.File),
+				Message: fmt.Sprintf("Load Launchpad Config '%s'?", conf.File),
 			}
 			if err := survey.AskOne(prompt, &yesLoad); err == terminal.InterruptErr {
 				log.Warn("Exiting...")
@@ -97,7 +109,7 @@ var loadCmd = &cobra.Command{
 			}
 		}
 
-		log.Info("Loading launchpad settings")
+		log.Info("Loading Launchpad Settings")
 		return command.LoadConfig(conf)
 	},
 }
@@ -105,8 +117,10 @@ var loadCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(loadCmd)
 
-	loadCmd.Flags().BoolP("backup", "b", false, "Backup current launchpad settings")
-	loadCmd.Flags().BoolP("no-backup", "n", false, "Do NOT backup current launchpad settings")
-	loadCmd.Flags().BoolP("yes", "y", false, "Do not prompt user for confirmation")
-	loadCmd.MarkFlagsMutuallyExclusive("backup", "no-backup")
+	loadCmd.Flags().BoolP("backup", "b", false, "Answer Yes To Backup Prompt")
+	loadCmd.Flags().BoolP("no-backup", "n", false, "Answer No To Backup Prompt")
+	loadCmd.Flags().BoolP("NO", "N", false, "Answer No To Backup Prompt")
+	loadCmd.Flags().BoolP("yes", "y", false, "Answer Yes To Prompts")
+	loadCmd.Flags().BoolP("YES", "Y", false, "Answer Yes To Prompts")
+	loadCmd.MarkFlagsMutuallyExclusive("backup", "no-backup", "NO")
 }
